@@ -1,0 +1,28 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "description": "tools website based on vue && go",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yanwenwu/tools.git"
+  },
+  "keywords": [
+    "vue",
+    "go",
+    "tools",
+    "website"
+  ],
+  "author": "JaguarJack",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yanwenwu/tools/issues"
+  },
+  "homepage": "https://github.com/yanwenwu/tools#readme",
+  "dependencies": {
+    "iview": "^3.0.1"
+  }
+}
