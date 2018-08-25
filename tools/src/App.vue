@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">在线工具</a>
+      </div>
+    </nav>
     <router-view/>
   </div>
 </template>
@@ -16,8 +20,8 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
+  body {
+    background-color: #f0f2f5;
+  }
 </style>

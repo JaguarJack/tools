@@ -1,85 +1,56 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li>
-        <a
-          href="https://vuejs.org"
-          target="_blank"
-        >
-          Core Docs
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://forum.vuejs.org"
-          target="_blank"
-        >
-          Forum
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://chat.vuejs.org"
-          target="_blank"
-        >
-          Community Chat
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://twitter.com/vuejs"
-          target="_blank"
-        >
-          Twitter
-        </a>
-      </li>
-      <br>
-      <li>
-        <a
-          href="http://vuejs-templates.github.io/webpack/"
-          target="_blank"
-        >
-          Docs for This Template
-        </a>
-      </li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li>
-        <a
-          href="http://router.vuejs.org/"
-          target="_blank"
-        >
-          vue-router
-        </a>
-      </li>
-      <li>
-        <a
-          href="http://vuex.vuejs.org/"
-          target="_blank"
-        >
-          vuex
-        </a>
-      </li>
-      <li>
-        <a
-          href="http://vue-loader.vuejs.org/"
-          target="_blank"
-        >
-          vue-loader
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-        >
-          awesome-vue
-        </a>
-      </li>
-    </ul>
+  <div class="container" style="margin-top:10px;">
+    <Tabs type="card" @click="getName()" name="name1">
+      <TabPane label="标签一">
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+      <TabPane label="标签二">
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入1</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+      <TabPane label="标签三">
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入2</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+    </Tabs>
+
   </div>
 </template>
 
@@ -88,7 +59,12 @@ export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      msg: 'Welcome to Your Vue.js Apps'
+    }
+  },
+  methods: {
+    getName (name) {
+      console.log(name)
     }
   }
 }
@@ -96,18 +72,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
 </style>
