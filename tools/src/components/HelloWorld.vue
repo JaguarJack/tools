@@ -1,7 +1,7 @@
 <template>
   <div class="container" style="margin-top:10px;">
-    <Tabs type="card" @click="getName()" name="name1">
-      <TabPane label="标签一">
+    <Tabs type="card" @on-click="getName">
+      <TabPane label="标签一" name="dddd" >
         <Card class="card col-sm-3 float-left">
           <div>
             <div class="text-center">
@@ -17,7 +17,7 @@
           </div>
         </Card>
       </TabPane>
-      <TabPane label="标签二">
+      <TabPane label="标签二" name="name2">
         <Card class="card col-sm-3 float-left">
           <div>
             <div class="text-center">
@@ -33,7 +33,7 @@
           </div>
         </Card>
       </TabPane>
-      <TabPane label="标签三">
+      <TabPane label="标签三" name="name3">
         <Card class="card col-sm-3 float-left">
           <div>
             <div class="text-center">
@@ -64,7 +64,7 @@ export default {
   },
   methods: {
     getName (name) {
-      console.log(name)
+
     }
   }
 }

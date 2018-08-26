@@ -1,38 +1,76 @@
 <template>
-  <div class="container">
-    <Card style="width:320px">
-      <div style="text-align:center">
-        <img src="">
-        <h3>A high quality UI Toolkit based on Vue.js</h3>
-      </div>
-    </Card>
-    <Card style="width:320px">
-      <div style="text-align:center">
-        <img src="">
-        <h3>A high quality UI Toolkit based on Vue.js</h3>
-      </div>
-    </Card>
-    <Card style="width:320px">
-      <div style="text-align:center">
-        <img src="">
-        <h3>A high quality UI Toolkit based on Vue.js</h3>
-      </div>
-    </Card>
-    <Card style="width:320px">
-      <div style="text-align:center">
-        <img src="">
-        <h3>A high quality UI Toolkit based on Vue.js</h3>
-      </div>
-    </Card>
+  <div class="container" style="margin-top:10px;">
+    <Tabs type="card" @on-click="getName">
+      <TabPane label="标签一" name="dddd" >
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+      <TabPane label="标签二" name="name2">
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入1</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+      <TabPane label="标签三" name="name3">
+        <Card class="card col-sm-3 float-left">
+          <div>
+            <div class="text-center">
+              <img src="http://tool.oschina.net/img/logo/apidocs.gif">
+              <h5 slot="title">Borderless card</h5>
+            </div>
+            <div>
+              标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一标签一
+            </div>
+            <p>
+              <Button type="error" size="small" class="float-right">进入2</Button>
+            </p>
+          </div>
+        </Card>
+      </TabPane>
+    </Tabs>
+
   </div>
 </template>
 
 <script>
-export default {
-  name: 'index'
-}
+  export default {
+    name: 'HelloWorld',
+    data () {
+      return {
+        msg: 'Welcome to Your Vue.js Apps'
+      }
+    },
+    methods: {
+      getName (name) {
+
+      }
+    }
+  }
 </script>
 
+<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
 </style>
