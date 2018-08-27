@@ -21,6 +21,8 @@ func Route(){
 
 	//获取主分类
 	router.GET("getCategory", controllers.GetCategory)
+	//获取主分类
+	router.POST("getTools", controllers.GetTools)
 
 	// This handler will match /user/john but will not match neither /user/ or /user
 	router.GET("/user/:name", func(c *gin.Context) {

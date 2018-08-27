@@ -6,14 +6,24 @@ import router from './router'
 import iView from 'iview'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import Qs from 'qs'
 import 'iview/dist/styles/iview.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min.js'
 
-Vue.use(VueAxios, axios)
+var _axios = axios.create({
+  transformRequest: [function (data) {
+    return Qs.stringify(data)
+  }],
+  headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+})
+
+Vue.use(VueAxios, _axios)
 Vue.use(iView)
 
 Vue.config.productionTip = false
+Vue.prototype.http = _axios
+Vue.prototype.host = 'http://localhost:9092/'
 
 /* eslint-disable no-new */
 new Vue({
