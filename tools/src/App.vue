@@ -2,7 +2,7 @@
   <div id="app">
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
       <div class="container">
-        <a class="navbar-brand" href="#">在线工具</a>
+        <router-link :to="{ name: 'index'}"><a class="navbar-brand" href="#">在线工具</a></router-link>
       </div>
     </nav>
     <div class="container">
@@ -10,15 +10,16 @@
         <Layout>
           <Header>
             <Menu mode="horizontal" active-name="all">
-              <MenuItem  v-for="tab in tabs" :key="+ tab.Id +''" :name="tab.Code">
-                <router-link :to="{ name: 'index', params: { code: tab.Code  }}">{{ tab.Name }}</router-link>
-              </MenuItem>
+               <MenuItem  v-for="tab in tabs" :key="+ tab.Id +''" :name="tab.Code">
+                  <router-link :to="{ name: 'category', params: { code: tab.Code  }}">{{ tab.Name }}</router-link>
+               </MenuItem>
             </Menu>
           </Header>
           <Layout>
-            <Content :style="{padding: '24px 0', minHeight: '580px', background: '#fff'}">
+            <Content :style="{padding: '24px 0',  margin: '10px 0 0 0',minHeight: '580px', background: '#fff'}">
               <Layout>
-                <Content :style="{padding: '24px', minHeight: '580px', background: '#fff'}">
+                <Content :style="{padding: '5px 20px', minHeight: '580px', background: '#fff'}">
+                  <router-view name="slider"/>
                   <router-view/>
                 </Content>
               </Layout>

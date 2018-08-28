@@ -23,7 +23,7 @@ Vue.use(iView)
 
 Vue.config.productionTip = false
 Vue.prototype.http = _axios
-Vue.prototype.host = 'http://localhost:9092/'
+Vue.prototype.host = 'http://192.168.36.9:9092/'
 
 /* eslint-disable no-new */
 new Vue({

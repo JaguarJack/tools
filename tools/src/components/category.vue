@@ -1,6 +1,6 @@
 <template>
-  <div class="container" style="margin-top:10px;">
-    <Card v-for="tool in tools" :key="+tool.Id+''" class="card col-sm-3 float-left" >
+  <div class="container">
+    <Card v-for="tool in tools" :key="+tool.Id+''" class="card col-sm-3 float-left">
       <div>
         <div class="text-center">
           <img :src="tool.Icon">
@@ -19,16 +19,24 @@
 
 <script>
 export default {
-  name: 'index',
+  name: 'category',
   data () {
     return {
       tools: null
     }
   },
   created () {
-    this.http.post(this.host + 'getTools', {name: 'all'}).then((response) => {
-      this.tools = response.data.data
-    })
+    this.load()
+  },
+  watch: {
+    '$route': 'load'
+  },
+  methods: {
+    load () {
+      this.http.post(this.host + 'getTools', {name: this.$route.params.code}).then((response) => {
+        this.tools = response.data.data
+      })
+    }
   }
 }
 </script>
