@@ -10,6 +10,7 @@ import Qs from 'qs'
 import 'iview/dist/styles/iview.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min.js'
+import global from './components/global'
 
 var _axios = axios.create({
   transformRequest: [function (data) {
@@ -20,15 +21,16 @@ var _axios = axios.create({
 
 Vue.use(VueAxios, _axios)
 Vue.use(iView)
+Vue.use(global)
 
 Vue.config.productionTip = false
 Vue.prototype.http = _axios
-Vue.prototype.host = 'http://192.168.36.9:9092/'
+Vue.prototype.host = 'http://localhost:9093/'
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
-  components: { App },
+  components: {App},
   template: '<App/>'
 })
