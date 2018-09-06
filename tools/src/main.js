@@ -25,7 +25,7 @@ Vue.use(global)
 
 Vue.config.productionTip = false
 Vue.prototype.http = _axios
-Vue.prototype.host = 'http://localhost:9093/'
+Vue.prototype.host = 'http://localhost:9092/'
 
 /* eslint-disable no-new */
 new Vue({
