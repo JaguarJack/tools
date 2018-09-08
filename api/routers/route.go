@@ -23,7 +23,10 @@ func Route(){
 	router.GET("getCategory", controllers.GetCategory)
 	//获取主分类
 	router.POST("getTools", controllers.GetTools)
-
+	//SSH接口
+	router.POST("outPut", controllers.OutPut)
+	//文件上传
+	router.POST("upload", controllers.Upload)
 	// This handler will match /user/john but will not match neither /user/ or /user
 	router.GET("/user/:name", func(c *gin.Context) {
 		name := c.Param("name")
