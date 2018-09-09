@@ -9,6 +9,9 @@ import (
 	"os"
 	"io"
 	"time"
+	"math/rand"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 func Upload(c *gin.Context)  {
@@ -54,8 +57,8 @@ func Upload(c *gin.Context)  {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"msg": msg,
-			"data": "",
+			"msg": "success",
+			"data": msg,
 		})
 	}
 
@@ -89,8 +92,8 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 	if status == 0 {
 		return "", errors.New(filename + " 文件格式错误");
 	}
-
-	img, err := os.Create("F:/" + filename)
+	newFileName := randomNString(10) + "." + extension
+	img, err := os.Create("F:/image/" + newFileName)
 	defer img.Close()
 	if err != nil {
 		return "", err
@@ -101,14 +104,15 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 		return "", e
 	}
 
-	return "success", nil
+	return newFileName, nil
 }
 
 func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, err error) {
 	if header.Size > 10240 * 1000 {
 		return "", errors.New("GIF文件不能超过 10M")
 	}
-	img, err := os.Create("F:/" + string(time.Now().Unix())+ ".gif")
+	newFileName := randomNString(10) + ".gif"
+	img, err := os.Create("F:/image/" + newFileName)
 	defer img.Close()
 	if err != nil {
 		return "", err
@@ -119,5 +123,19 @@ func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, e
 		return "", e
 	}
 
-	return "upload Success", nil
+	return newFileName, nil
+}
+
+
+func randomNString(n int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJSKLMNOPQRSTUVWXYZ"
+	bytes := []byte(str)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	res := []byte{}
+	for i :=0; i < n; i++ {
+		res = append(res, bytes[r.Intn(len(bytes))])
+	}
+	ctx := md5.New()
+	ctx.Write(res)
+	return hex.EncodeToString(ctx.Sum(nil))
 }
