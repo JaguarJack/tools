@@ -19,7 +19,7 @@
         </Upload>
       </TabPane>
       <TabPane label="GIF合成">
-        <div class="demo-upload-list" v-for="item in uploadList" >
+        <div class="demo-upload-list" :key="item.url" v-for="item in uploadList" >
           <template v-if="item.status === 'finished'">
             <img :src="item.url">
             <div class="demo-upload-list-cover">
@@ -51,6 +51,9 @@
         <Modal title="View Image" v-model="visible">
           <img :src="'http://img.com/' + imgName" v-if="visible" style="width: 100%">
         </Modal>
+        <div class="container"  v-on:click="produce()">
+            <Button type="primary">制作</Button>
+        </div>
       </TabPane>
     </Tabs>
   </div>
@@ -64,10 +67,22 @@ export default {
       action: this.host + 'upload',
       visible: false,
       imgName: '',
-      uploadList: []
+      uploadList: [],
+      list: []
     }
   },
   methods: {
+    produce () {
+      this.list = []
+      console.log(this.uploadList)
+      for (let item of this.uploadList) {
+        console.log(item.name)
+        this.list.push(item.name)
+      }
+      console.log(this.list)
+      this.http.post(this.host + 'makeGif', {list: this.list}, function (response) {
+      })
+    },
     handleSuccess (res, file) {
       console.log(123)
     },
@@ -96,7 +111,7 @@ export default {
       })
     },
     _handleBeforeUpload () {
-      const check = this.uploadList.length < 50
+      const check = this.uploadList.length < 100
       if (!check) {
         this.$Notice.warning({
           title: '最多支持上传20张图片'

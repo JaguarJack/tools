@@ -8,10 +8,17 @@ import (
 	"errors"
 	"os"
 	"io"
-	"time"
 	"math/rand"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
+	"image/gif"
+	"image"
+	"image/draw"
+	"image/color/palette"
+	"image/color"
+	_"image/jpeg"
+	_"image/png"
 )
 
 func Upload(c *gin.Context)  {
@@ -92,7 +99,7 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 	if status == 0 {
 		return "", errors.New(filename + " 文件格式错误");
 	}
-	newFileName := randomNString(10) + "." + extension
+	newFileName := randomNString(5) + "." + extension
 	img, err := os.Create("F:/image/" + newFileName)
 	defer img.Close()
 	if err != nil {
@@ -127,13 +134,74 @@ func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, e
 }
 
 
+func MakeGif(c *gin.Context) {
+	c.Request.ParseForm()
+	newGif := &gif.GIF{}
+	_palette := append(palette.WebSafe, color.Transparent)
+
+	//_p := make(chan image.Paletted, 100)
+	//defer close(_p)
+	for _, value := range c.Request.PostForm {
+			f, err := os.Open("F:/image/" + value[0])
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+			img, _, err := image.Decode(f)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			// 图片格式转换
+			bounds := img.Bounds()
+			palettedImage := image.NewPaletted(bounds, _palette)
+			fmt.Println(&palettedImage)
+			draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
+			newGif.Image = append(newGif.Image, palettedImage)
+			newGif.Delay = append(newGif.Delay, 20)
+			// outGif.Disposal = append(outGif.Disposal, gif.DisposalPrevious)
+			//go getImage(value[0], _palette, _p)
+	}
+	//_pl := <- _p
+	/*for v := range _p {
+		newGif.Image = append(newGif.Image, &v)
+		newGif.Delay = append(newGif.Delay, 20)
+	}*/
+	_gif := randomNString(6) + ".gif"
+	f, _ := os.Create(_gif)
+	defer f.Close()
+	gif.EncodeAll(f, newGif)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+		"data": _gif,
+	})
+}
+
+func getImage(file string, s []color.Color, p chan image.Paletted)  {
+	f, err := os.Open("F:/image/" + file)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	// 图片格式转换
+	bounds := img.Bounds()
+	palettedImage := image.NewPaletted(bounds, s)
+	draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
+	p <- *palettedImage
+}
+/**
+产生一个随机字符串
+ */
 func randomNString(n int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJSKLMNOPQRSTUVWXYZ"
 	bytes := []byte(str)
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	res := []byte{}
 	for i :=0; i < n; i++ {
-		res = append(res, bytes[r.Intn(len(bytes))])
+		res = append(res, bytes[rand.Intn(len(bytes))])
 	}
 	ctx := md5.New()
 	ctx.Write(res)
