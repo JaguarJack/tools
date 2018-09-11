@@ -17,8 +17,13 @@ import (
 	"image/draw"
 	"image/color/palette"
 	"image/color"
-	_"image/jpeg"
-	_"image/png"
+	_ "image/jpeg"
+	_ "image/png"
+	"sync"
+	"log"
+	"github.com/nfnt/resize"
+	"image/jpeg"
+	"image/png"
 )
 
 func Upload(c *gin.Context)  {
@@ -105,13 +110,36 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 	if err != nil {
 		return "", err
 	}
-	
 	_, e := io.Copy(img, file)
 	if e != nil {
 		return "", e
 	}
 
+	// 图片压缩
+	_i, _ := os.Open("F:/image/" + newFileName)
+	defer _i.Close()
+	_img, _, err := image.Decode(_i)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	bounds := _img.Bounds()
+	if bounds.Dx() < 150 && bounds.Dx() < 150 {
+		return newFileName, nil
+	}
+	canvas := resize.Resize(300, 300, _img, resize.NearestNeighbor)
+	file_out, err := os.Create("F:/image/" + newFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file_out.Close()
+	if extension == "jpg" || extension == "jpeg" {
+		jpeg.Encode(file_out, canvas, &jpeg.Options{80})
+	} else {
+		png.Encode(file_out, canvas)
+	}
+
 	return newFileName, nil
+
 }
 
 func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, err error) {
@@ -133,39 +161,36 @@ func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, e
 	return newFileName, nil
 }
 
-
-func MakeGif(c *gin.Context) {
+func makeGif(c *gin.Context)  {
 	c.Request.ParseForm()
+	if len(c.Request.PostForm) < 1 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"msg": "Please Upload Pictures",
+			"data": "",
+		})
+		c.Abort()
+		return
+	}
 	newGif := &gif.GIF{}
 	_palette := append(palette.WebSafe, color.Transparent)
-
-	//_p := make(chan image.Paletted, 100)
-	//defer close(_p)
 	for _, value := range c.Request.PostForm {
-			f, err := os.Open("F:/image/" + value[0])
-			if err != nil {
-				panic(err)
-			}
-			defer f.Close()
-			img, _, err := image.Decode(f)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			// 图片格式转换
-			bounds := img.Bounds()
-			palettedImage := image.NewPaletted(bounds, _palette)
-			fmt.Println(&palettedImage)
-			draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
-			newGif.Image = append(newGif.Image, palettedImage)
-			newGif.Delay = append(newGif.Delay, 20)
-			// outGif.Disposal = append(outGif.Disposal, gif.DisposalPrevious)
-			//go getImage(value[0], _palette, _p)
-	}
-	//_pl := <- _p
-	/*for v := range _p {
-		newGif.Image = append(newGif.Image, &v)
+		fmt.Println(value[0])
+		f, err := os.Open("F:/image/" + value[0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer f.Close()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		// 图片格式转换
+		bounds := img.Bounds()
+		palettedImage := image.NewPaletted(bounds, _palette)
+		draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
+		newGif.Image = append(newGif.Image, palettedImage)
 		newGif.Delay = append(newGif.Delay, 20)
-	}*/
+	}
 	_gif := randomNString(6) + ".gif"
 	f, _ := os.Create(_gif)
 	defer f.Close()
@@ -176,22 +201,58 @@ func MakeGif(c *gin.Context) {
 		"data": _gif,
 	})
 }
-
-func getImage(file string, s []color.Color, p chan image.Paletted)  {
-	f, err := os.Open("F:/image/" + file)
-	if err != nil {
-		panic(err)
+func MakeGif(c *gin.Context) {
+	c.Request.ParseForm()
+	if len(c.Request.PostForm) < 1 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"msg": "Please Upload Pictures",
+			"data": "",
+		})
+		c.Abort()
+		return
 	}
+	newGif := &gif.GIF{}
+	var wg sync.WaitGroup
+	_palette := append(palette.WebSafe, color.Transparent)
+	_p := make(chan *image.Paletted)
+	for _, value := range c.Request.PostForm {
+		wg.Add(1)
+			go func(name string, s []color.Color) {
+				defer wg.Done()
+				f, err := os.Open("F:/image/" + name)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				defer f.Close()
+				img, _, err := image.Decode(f)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				// 图片格式转换
+				bounds := img.Bounds()
+				palettedImage := image.NewPaletted(bounds, s)
+				draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
+				_p <- palettedImage
+			}(value[0], _palette)
+	}
+	go func() {
+		wg.Wait()
+		close(_p)
+	}()
+	for v := range _p {
+		newGif.Image = append(newGif.Image, v)
+		newGif.Delay = append(newGif.Delay, 20)
+	}
+	fmt.Println(newGif)
+	_gif := randomNString(6) + ".gif"
+	f, _ := os.Create(_gif)
 	defer f.Close()
-	img, _, err := image.Decode(f)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	// 图片格式转换
-	bounds := img.Bounds()
-	palettedImage := image.NewPaletted(bounds, s)
-	draw.Draw(palettedImage, bounds, img, image.ZP, draw.Src)
-	p <- *palettedImage
+	gif.EncodeAll(f, newGif)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+		"data": _gif,
+	})
 }
 /**
 产生一个随机字符串
