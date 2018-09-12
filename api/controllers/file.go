@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"image/gif"
 	"image"
 	"image/draw"
@@ -24,6 +23,10 @@ import (
 	"github.com/nfnt/resize"
 	"image/jpeg"
 	"image/png"
+	"github.com/golang/freetype"
+	"io/ioutil"
+	"flag"
+	"strconv"
 )
 
 func Upload(c *gin.Context)  {
@@ -52,9 +55,10 @@ func Upload(c *gin.Context)  {
 			return
 		}
 
+		f := resolveGif(msg)
 		c.JSON(http.StatusOK, gin.H{
 			"msg": msg,
-			"data": "",
+			"data": f,
 		})
 	} else {
 		msg, err := uploadNotGif(file, header)
@@ -76,6 +80,76 @@ func Upload(c *gin.Context)  {
 
 }
 
+/**
+制作gif信息
+ */
+func MakeGifIntro(c *gin.Context) {
+	_gif := strings.Split(strings.Trim(c.PostForm("gif"), ","), ",")
+	fontfile := flag.String("fontfile", "F:/msyh.ttf", "filename of the ttf font")
+	flag.Parse()
+	info := strings.Split(strings.Trim(c.PostForm("info"), ","), ",")
+	_info := make(map[int]string, 0)
+	for _, v := range info {
+		_f := strings.Split(v, "_")
+		key, _ := strconv.Atoi(_f[1])
+		_info[key] = _f[0]
+	}
+	//newGif := &gif.GIF{}
+	//_palette := append(palette.WebSafe, color.Transparent)
+	//_palette := append(palette.WebSafe, color.Transparent)
+	for index, value := range _gif {
+		if _, ok := _info[index]; ok {
+			file, _ := os.Open("F:/image/" + value)
+			defer file.Close()
+			imageFile, _, err := image.Decode(file)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			fontBytes, err := ioutil.ReadFile(*fontfile)
+			rgba := image.NewRGBA(imageFile.Bounds())
+			if err != nil {
+				log.Println(err)
+			}
+			//载入字体数据
+			font, err := freetype.ParseFont(fontBytes)
+			if err != nil {
+				log.Println("load front fail", err)
+			}
+			f := freetype.NewContext()
+			f.SetDPI(72) //设置分辨率
+			f.SetFont(font) //设置字体
+			f.SetFontSize(32) //设置尺寸
+			f.SetClip(rgba.Bounds())
+			f.SetDst(rgba)
+			f.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 255}))//设置字体颜色(红色)
+			pt := freetype.Pt(40, 40+int(f.PointToFixed(26))>>8)
+			_, err = f.DrawString(_info[index], pt)
+			if err != nil {
+				log.Fatal(err)
+			}
+			ext := strings.Split(value, ".")[1]
+			_f, _ := os.Create("F:/image/aaaa." + ext)
+
+			if (ext == "jpeg" || ext == "jpg") {
+				jpeg.Encode(_f, imageFile, nil)
+			} else {
+				png.Encode(_f, imageFile)
+			}
+		}
+	}
+	/*palettedImage := image.NewPaletted(rgba.Bounds(), _palette)
+	draw.Draw(palettedImage, rgba.Bounds(), imageFile, image.ZP, draw.Src)
+	newGif.Image = append(newGif.Image, palettedImage)
+	newGif.Delay = append(newGif.Delay, 80)*/
+	/*newF := randomNString(6)
+	f_, _ := os.Create("F:/" + newF + ".gif")
+	defer f_.Close()
+	gif.EncodeAll(f_, newGif)
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+		"data": newF,
+	})*/
+}
 /**
 上传非gif图片
  */
@@ -142,6 +216,27 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 
 }
 
+func resolveGif(filename string) []string  {
+	file, err := os.Open("F:/image/" + filename)
+	defer file.Close()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	img, err := gif.DecodeAll(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	files := make([]string, 0)
+	newDir := randomNString(6)
+	os.Mkdir("F:/image/" + newDir, os.ModePerm)
+	for _, value := range img.Image {
+		fileName := randomNString(6) + ".png"
+		f , _ := os.Create( "F:/image/" + newDir + "/" + fileName)
+		png.Encode(f, value)
+		files = append(files, newDir + "/" + fileName)
+	}
+	return files
+}
 func uploadGif(file multipart.File, header *multipart.FileHeader) (msg string, err error) {
 	if header.Size > 10240 * 1000 {
 		return "", errors.New("GIF文件不能超过 10M")
@@ -174,7 +269,6 @@ func makeGif(c *gin.Context)  {
 	newGif := &gif.GIF{}
 	_palette := append(palette.WebSafe, color.Transparent)
 	for _, value := range c.Request.PostForm {
-		fmt.Println(value[0])
 		f, err := os.Open("F:/image/" + value[0])
 		if err != nil {
 			log.Fatalln(err)
@@ -192,7 +286,7 @@ func makeGif(c *gin.Context)  {
 		newGif.Delay = append(newGif.Delay, 20)
 	}
 	_gif := randomNString(6) + ".gif"
-	f, _ := os.Create(_gif)
+	f, _ := os.Create("F:/image/" + _gif)
 	defer f.Close()
 	gif.EncodeAll(f, newGif)
 
@@ -241,11 +335,11 @@ func MakeGif(c *gin.Context) {
 	}()
 	for v := range _p {
 		newGif.Image = append(newGif.Image, v)
-		newGif.Delay = append(newGif.Delay, 20)
+		newGif.Delay = append(newGif.Delay, 60)
 	}
-	fmt.Println(newGif)
+
 	_gif := randomNString(6) + ".gif"
-	f, _ := os.Create(_gif)
+	f, _ := os.Create("F:/image/" + _gif)
 	defer f.Close()
 	gif.EncodeAll(f, newGif)
 
@@ -254,6 +348,7 @@ func MakeGif(c *gin.Context) {
 		"data": _gif,
 	})
 }
+
 /**
 产生一个随机字符串
  */

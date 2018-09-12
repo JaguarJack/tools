@@ -26,6 +26,7 @@ Vue.use(global)
 Vue.config.productionTip = false
 Vue.prototype.http = _axios
 Vue.prototype.host = 'http://localhost:9092/'
+Vue.prototype.imgHost = 'http://img.com/'
 
 /* eslint-disable no-new */
 new Vue({

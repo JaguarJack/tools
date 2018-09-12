@@ -17,6 +17,19 @@
             <p>点击上传gif图片,单张图片不超过10M</p>
           </div>
         </Upload>
+        <Modal title="GIF 说明" v-model="visible" @on-ok="ok">
+          <img :src="'http://img.com/' + imgName" v-if="visible" style="width: 100%">
+          <Input placeholder="输入说明..." v-model="value" style="width: 100%;margin-top:15px;" />
+        </Modal>
+        <div class="demo-upload-list" :key="item.url" v-for="(item,index) in gifList" >
+            <img :src="item.url">
+            <div class="demo-upload-list-cover">
+              <Icon type="ios-eye-outline" @click.native="handleView(item.name, index)"></Icon>
+            </div>
+        </div>
+        <div class="container"  v-on:click="_produce()">
+          <Button type="primary" >制作</Button>
+        </div>
       </TabPane>
       <TabPane label="GIF合成">
         <div class="demo-upload-list" :key="item.url" v-for="item in uploadList" >
@@ -48,12 +61,14 @@
             <Icon type="ios-camera" size="20"></Icon>
           </div>
         </Upload>
-        <Modal title="View Image" v-model="visible">
-          <img :src="'http://img.com/' + imgName" v-if="visible" style="width: 100%">
-        </Modal>
         <div class="container"  v-on:click="produce()">
-            <Button type="primary">制作</Button>
+            <Button type="primary" @click="handleSpinCustom">制作</Button>
         </div>
+        <Modal
+          v-model="modal1"
+          title="GIF">
+          <p style="margin:0 auto;"><img :src="imgUrl"></p>
+        </Modal>
       </TabPane>
     </Tabs>
   </div>
@@ -68,23 +83,82 @@ export default {
       visible: false,
       imgName: '',
       uploadList: [],
-      list: []
+      list: [],
+      imgUrl: '',
+      modal1: false,
+      gifList: [],
+      info: [],
+      value: '',
+      index: null
     }
   },
   methods: {
+    handleSpinCustom () {
+      this.$Spin.show({
+        render: (h) => {
+          return h('div', [
+            h('Icon', {
+              'class': 'demo-spin-icon-load',
+              props: {
+                type: 'ios-loading',
+                size: 18
+              }
+            }),
+            h('div', 'GIF Making Now...')
+          ])
+        }
+      })
+    },
+    ok () {
+      let item = []
+      item.msg = this.value
+      item.key = this.index
+      this.info.push(item)
+      this.value = ''
+    },
+    _produce () {
+      let gif = ''
+      let info = ''
+      for (let item of this.gifList) {
+        gif += item.name + ','
+      }
+      for (let item of this.info) {
+        info += item.msg + '_' + item.key + ','
+      }
+      this.http.post(this.host + 'makeGifIntro', {gif: gif, info: info}).then((response) => {
+      })
+    },
     produce () {
       this.list = []
-      console.log(this.uploadList)
       for (let item of this.uploadList) {
-        console.log(item.name)
         this.list.push(item.name)
       }
-      console.log(this.list)
-      this.http.post(this.host + 'makeGif', {list: this.list}, function (response) {
+      this.http.post(this.host + 'makeGif', {list: this.list}).then((response) => {
+        this.$Spin.hide()
+        if (response.data.msg === 'success') {
+          this.imgUrl = this.imgHost + response.data.data
+          this.modal1 = true
+          this.$Notice.success({
+            title: 'GIF 合成',
+            desc: 'GIF 合成成功'
+          })
+        }
+      }).catch((error) => {
+        this.$Spin.hide()
+        this.$Notice.success({
+          title: 'GIF 合成',
+          desc: 'GIF 合成失败, 请重新执行'
+        })
       })
     },
     handleSuccess (res, file) {
-      console.log(123)
+      this.gifList = []
+      for (let v of res.data) {
+        let item = []
+        item.name = v
+        item.url  = this.imgHost + v
+        this.gifList.push(item)
+      }
     },
     handleMaxSize (file) {
       this.$Notice.warning({
@@ -120,12 +194,13 @@ export default {
       return check
     },
     _handleSuccess (res, file) {
-      file.url = 'http://img.com/' + res.data
+      file.url = this.imgHost + res.data
       file.name = res.data
     },
-    handleView (name) {
+    handleView (name, index) {
       this.imgName = name
       this.visible = true
+      this.index = index
     },
     handleRemove (file) {
       const fileList = this.$refs.upload.fileList
@@ -174,5 +249,8 @@ export default {
     font-size: 20px;
     cursor: pointer;
     margin: 0 2px;
+  }
+  .demo-spin-icon-load{
+    animation: ani-demo-spin 1s linear infinite;
   }
 </style>
