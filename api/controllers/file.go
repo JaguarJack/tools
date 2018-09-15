@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"flag"
 	"strconv"
+	"fmt"
 )
 
 func Upload(c *gin.Context)  {
@@ -362,4 +363,57 @@ func randomNString(n int) string {
 	ctx := md5.New()
 	ctx.Write(res)
 	return hex.EncodeToString(ctx.Sum(nil))
+}
+
+/**
+给图片绘制文字
+ */
+func drawWordsToPic(imgName string) {
+	file, err := os.Open("F:/image/" + imgName)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer file.Close()
+	imageFile, _, err := image.Decode(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fontBytes, err := ioutil.ReadFile("F:/msyh.ttf")
+	rgba := image.NewRGBA(imageFile.Bounds())
+	draw.Draw(rgba, imageFile.Bounds(), imageFile, image.ZP, draw.Src)
+	//载入字体数据
+	_font, err := freetype.ParseFont(fontBytes)
+	if err != nil {
+		log.Println("load front fail", err)
+	}
+	f := freetype.NewContext()
+	f.SetDPI(72) //设置分辨率
+	f.SetFont(_font) //设置字体
+	f.SetFontSize(38) //设置尺寸
+	f.SetClip(rgba.Bounds())
+	f.SetDst(rgba)
+	f.SetSrc(image.NewUniform(color.RGBA{255,0,0,255}))
+	//设置字体的位置
+	pt := freetype.Pt(158,40 * int(f.PointToFixed(38)) >> 8)
+	_, err = f.DrawString("神罗天征", pt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ext := strings.Split(imgName, ".")[1]
+	_f, err := os.Create("F:/bbbb." + ext)
+	defer _f.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if (ext == "jpeg" || ext == "jpg") {
+		err := jpeg.Encode(_f, rgba, &jpeg.Options{jpeg.DefaultQuality})
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		err := png.Encode(_f, rgba)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
 }
