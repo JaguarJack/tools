@@ -25,7 +25,6 @@ import (
 	"image/png"
 	"github.com/golang/freetype"
 	"io/ioutil"
-	"flag"
 	"strconv"
 	"fmt"
 )
@@ -86,8 +85,6 @@ func Upload(c *gin.Context)  {
  */
 func MakeGifIntro(c *gin.Context) {
 	_gif := strings.Split(strings.Trim(c.PostForm("gif"), ","), ",")
-	fontfile := flag.String("fontfile", "F:/msyh.ttf", "filename of the ttf font")
-	flag.Parse()
 	info := strings.Split(strings.Trim(c.PostForm("info"), ","), ",")
 	_info := make(map[int]string, 0)
 	for _, v := range info {
@@ -95,61 +92,53 @@ func MakeGifIntro(c *gin.Context) {
 		key, _ := strconv.Atoi(_f[1])
 		_info[key] = _f[0]
 	}
-	//newGif := &gif.GIF{}
-	//_palette := append(palette.WebSafe, color.Transparent)
-	//_palette := append(palette.WebSafe, color.Transparent)
+	newGif := &gif.GIF{}
+	_palette := append(palette.WebSafe, color.Transparent)
 	for index, value := range _gif {
 		if _, ok := _info[index]; ok {
-			file, _ := os.Open("F:/image/" + value)
-			defer file.Close()
-			imageFile, _, err := image.Decode(file)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			fontBytes, err := ioutil.ReadFile(*fontfile)
-			rgba := image.NewRGBA(imageFile.Bounds())
-			if err != nil {
-				log.Println(err)
-			}
-			//载入字体数据
-			font, err := freetype.ParseFont(fontBytes)
-			if err != nil {
-				log.Println("load front fail", err)
-			}
-			f := freetype.NewContext()
-			f.SetDPI(72) //设置分辨率
-			f.SetFont(font) //设置字体
-			f.SetFontSize(32) //设置尺寸
-			f.SetClip(rgba.Bounds())
-			f.SetDst(rgba)
-			f.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 255}))//设置字体颜色(红色)
-			pt := freetype.Pt(40, 40+int(f.PointToFixed(26))>>8)
-			_, err = f.DrawString(_info[index], pt)
-			if err != nil {
-				log.Fatal(err)
-			}
-			ext := strings.Split(value, ".")[1]
-			_f, _ := os.Create("F:/image/aaaa." + ext)
-
-			if (ext == "jpeg" || ext == "jpg") {
-				jpeg.Encode(_f, imageFile, nil)
-			} else {
-				png.Encode(_f, imageFile)
-			}
+			drawWordsToPic(value, _info[index])
 		}
 	}
-	/*palettedImage := image.NewPaletted(rgba.Bounds(), _palette)
-	draw.Draw(palettedImage, rgba.Bounds(), imageFile, image.ZP, draw.Src)
-	newGif.Image = append(newGif.Image, palettedImage)
-	newGif.Delay = append(newGif.Delay, 80)*/
-	/*newF := randomNString(6)
-	f_, _ := os.Create("F:/" + newF + ".gif")
-	defer f_.Close()
-	gif.EncodeAll(f_, newGif)
+	_palette_ch := make(chan map[int]*image.Paletted)
+	var wg sync.WaitGroup
+	for index, value := range _gif {
+		wg.Add(1)
+		go func(name string, s []color.Color, index int) {
+			defer wg.Done()
+			_file, _ := os.Open("F:/image/" + value)
+			img, _, _ := image.Decode(_file)
+			palettedImage := image.NewPaletted(img.Bounds(), _palette)
+			draw.Draw(palettedImage, img.Bounds(), img, image.ZP, draw.Src)
+			data := make(map[int]*image.Paletted)
+			data[index] = palettedImage
+			_palette_ch <- data
+		}(value, _palette, index)
+	}
+	go func() {
+		wg.Wait()
+		close(_palette_ch)
+	}()
+
+	res := make(map[int]*image.Paletted)
+	for v := range _palette_ch {
+		for index, value := range v {
+			res[index] = value
+		}
+	}
+	_len := len(_gif)
+	for i:=0; i< _len; i++ {
+		newGif.Image = append(newGif.Image, res[i])
+		newGif.Delay = append(newGif.Delay, 20)
+	}
+	_g := randomNString(6) + ".gif"
+	f, _ := os.Create("F:/" + _g)
+	defer f.Close()
+	gif.EncodeAll(f, newGif)
+
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "success",
-		"data": newF,
-	})*/
+		"data": _gif,
+	})
 }
 /**
 上传非gif图片
@@ -162,13 +151,7 @@ func uploadNotGif(file multipart.File, header *multipart.FileHeader) (msg string
 	}
 	// 文件后缀是否正确
 	extension := strings.Split(filename, ".")[1]
-	/*extentions := make(map[string]int);
-	extentions["png"] = 1
-	extentions["jpeg"] = 1
-	extentions["jpg"] = 1
-	if _, in := extentions[extension]; !in {
-		return "", errors.New(filename + " 文件格式错误");
-	}*/
+
 	extensions := []string{"png", "jpeg", "jpg"}
 	status := 0
 	for _, value := range extensions {
@@ -368,7 +351,7 @@ func randomNString(n int) string {
 /**
 给图片绘制文字
  */
-func drawWordsToPic(imgName string) {
+func drawWordsToPic(imgName string, msg string) {
 	file, err := os.Open("F:/image/" + imgName)
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -389,31 +372,25 @@ func drawWordsToPic(imgName string) {
 	f := freetype.NewContext()
 	f.SetDPI(72) //设置分辨率
 	f.SetFont(_font) //设置字体
-	f.SetFontSize(38) //设置尺寸
+	f.SetFontSize(20) //设置尺寸
 	f.SetClip(rgba.Bounds())
 	f.SetDst(rgba)
 	f.SetSrc(image.NewUniform(color.RGBA{255,0,0,255}))
 	//设置字体的位置
-	pt := freetype.Pt(158,40 * int(f.PointToFixed(38)) >> 8)
-	_, err = f.DrawString("神罗天征", pt)
+	pt := freetype.Pt(40,20 * int(f.PointToFixed(38)) >> 8)
+	_, err = f.DrawString(msg, pt)
 	if err != nil {
 		log.Fatal(err)
 	}
 	ext := strings.Split(imgName, ".")[1]
-	_f, err := os.Create("F:/bbbb." + ext)
+	_f, err := os.Create("F:/image/" + imgName)
 	defer _f.Close()
 	if err != nil {
 		fmt.Println(err)
 	}
 	if (ext == "jpeg" || ext == "jpg") {
-		err := jpeg.Encode(_f, rgba, &jpeg.Options{jpeg.DefaultQuality})
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		jpeg.Encode(_f, rgba, &jpeg.Options{jpeg.DefaultQuality})
 	} else {
-		err := png.Encode(_f, rgba)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		png.Encode(_f, rgba)
 	}
 }

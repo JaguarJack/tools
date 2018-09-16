@@ -143,7 +143,7 @@ export default {
             desc: 'GIF 合成成功'
           })
         }
-      }).catch((error) => {
+      }).catch(() => {
         this.$Spin.hide()
         this.$Notice.success({
           title: 'GIF 合成',
@@ -156,7 +156,7 @@ export default {
       for (let v of res.data) {
         let item = []
         item.name = v
-        item.url  = this.imgHost + v
+        item.url = this.imgHost + v
         this.gifList.push(item)
       }
     },
