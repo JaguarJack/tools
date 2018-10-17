@@ -14,6 +14,8 @@ tools website maked by vue &amp;&amp; go
 - go get golang.org/x/image/font
 - go get golang.org/x/crypto/ssh
 - go get github.com/nfnt/resize
+- go get github.com/fsnotify/fsnotify
+- go get github.com/pkg/sftp
 
 
 
